@@ -75,12 +75,13 @@ def container_stop_all():
            for container in client.containers.list():
                 container.stop()
                 click.echo("Containers Stopped")
+               
     else:
         print("No Containers are Running")
 
 @click.command()
 def stop_tools():
-    """Prompts User to Stop the Docker Containers"""
+    """Prompts User to Stop and Remove the Docker Containers"""
     print("Following Containers are Running: ")
     containers=client.containers.list()
     print(containers)
@@ -88,6 +89,13 @@ def stop_tools():
     containerstop=client.containers.get(containerid)
     containerstop.stop()  
     print("Container Stopped")  
+    if click.confirm('Do you also want to remove containers?'):
+        #container_removeid=click.prompt('Please Provide the Container Id to remove',default=Any)
+        containerremove=client.containers.get(containerid)
+        containerremove.remove()
+        print("Container Removed!!") 
+    
+
 @click.command()
 def pull_dstool():
     """Use this command to pull DS tools locally"""
