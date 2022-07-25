@@ -48,7 +48,7 @@ def menu():
 @click.command()
 #@click.argument('ToolID')
 def CallTool():
-    """Call the Tool"""
+    """Start the Tool"""
     #print("Please Enter the Tool Name")
     toolname=click.prompt('Please enter a tool name',default=Any)
     #print("Please Provide the Port")
@@ -67,7 +67,7 @@ def containers_running():
 
 @click.command()
 def container_stop_all():
-    """Be Careful! This Will Stop All the Containers"""
+    """Be Careful! This Command Will Stop All the Containers"""
     if (client.containers.list(filters={'status':'running'})):
         print("Following containers are running")
         print(client.containers.list())
@@ -89,7 +89,7 @@ def stop_tools():
     containerstop=client.containers.get(containerid)
     containerstop.stop()  
     print("Container Stopped")  
-    if click.confirm('Do you also want to remove containers?'):
+    if click.confirm('Do You also Want to Remove Containers?'):
         #container_removeid=click.prompt('Please Provide the Container Id to remove',default=Any)
         containerremove=client.containers.get(containerid)
         containerremove.remove()
@@ -98,7 +98,7 @@ def stop_tools():
 
 @click.command()
 def pull_dstool():
-    """Use this command to pull DS tools locally"""
+    """Use this Command to Pull DS Tools Containers Locally"""
     toolname=str(click.prompt('Enter the DS Tool Name:',default=any))
     pull=client.images.pull(toolname)
 def complete_env_vars(ctx,param,incomplete):
@@ -108,7 +108,7 @@ def complete_env_vars(ctx,param,incomplete):
 def local_docker_images(name):
     #click.echo(f"Name:{name}")
     #click.echo(f"Value:{os.environ[name]}")
-    """This Command Shows Local Images"""
+    """This Command Shows Local Docker Images"""
     print(client.images.list())
 
 ds.add_command(menu)
