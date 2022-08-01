@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import docker, click, webbrowser, requests, json, time, re, os, random
+import docker, click, webbrowser, requests, json, time, re, os, sys, random
 from operator import itemgetter
 from pathlib import Path
 
@@ -15,6 +15,20 @@ start = None
 stop = None
 
 client = docker.from_env()
+
+
+# Generates a list of all dstools already on the system
+imagesLocal = client.images.list()
+downloadedDsTools = []
+pattern = re.compile("afcai2c")
+for images in imagesLocal:
+    images = str(images).split(': ')[1: ]
+    for i1 in images:
+        i2 = i1.replace("'","").strip('>').split(',')
+        for img in i2:
+            img = img.split(':')[0]
+            if pattern.search(img):
+              downloadedDsTools.append(img)
 
 # This list contains images to exclude from being displayed
 excludedImages = [
@@ -32,33 +46,67 @@ excludedImages = [
     'afcai2c/openjdk11'
     ]
 
-# Generates a list of all dstools already on the system
-imagesLocal = client.images.list()
-downloadedDsTools = []
-pattern = re.compile("afcai2c")
-for images in imagesLocal:
-    images = str(images).split(': ')[1: ]
-    for i1 in images:
-        i2 = i1.replace("'","").strip('>').split(',')
-        for img in i2:
-            img = img.split(':')[0]
-            if pattern.search(img):
-              downloadedDsTools.append(img)
 
+### Dynamically Obtains docker images from Docker Hub (online)
+### Note: the docker search feature isn't displaying all images within the afcai2c registry
+# dsToolDict = client.images.search('afcai2c')
+# dsToolDict = sorted(dsToolDict, key=itemgetter('name'))
 
-# Dynamically Obtains docker images from Docker Hub (online)
-dsToolDict = client.images.search('afcai2c')
-dsToolDict = sorted(dsToolDict, key=itemgetter('name'))
+dsToolDict = [
+    {
+        'name': 'afcai2c/jlab-eda', 'description': 'Jupyter Lab Exploratory Data Analysis AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/jlab-dl', 'description': 'Jupyter Lab with Deep Learning AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/jlab-cv', 'description': 'Jupyter Lab with Computer Vision AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/jlab-geo', 'description': 'Jupyter Lab with Geospatial AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/jlab-nlp', 'description': 'Jupyter Lab with Natural Language Processing AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/jlab-network', 'description': 'Jupyter Lab with networking AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/r-studio-eda', 'description': 'R Studio with Exploritory Data Analysis AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/r-studio-dl', 'description': 'R Studio with Deep Learning AI/ML packages'
+    }, 
+    {
+        'name': 'afcai2c/r-shiny', 'description': 'R Shiny - Build interactive web applications that can execute R code'
+    }, 
+    {
+        'name': 'afcai2c/dash', 'description': 'Ploty Dash - A Python framework for building reactive web-apps'
+    }, 
+    {
+        'name': 'afcai2c/label-studio', 'description': 'Flexible data labeling tool -- Default username/password == username@coeus.mil / password'
+    }, 
+    {
+        'name': 'afcai2c/superset', 'description': 'Apache Superset -- Business Intellligence tool for data exploration and visualization'
+    }, 
+    {
+        'name': 'afcai2c/nginx', 'description': 'A web server that can also be used as a reverse proxy, load balancer, and more.'
+    }, 
+    {
+        'name': 'afcai2c/metabase', 'description': 'Business Intelligence tool for data exploration and visualization'
+    }
+    ]
 dsToolMenu = []
-print("%-30s %-10s %-15s %s" %('Image Name','Stars','Downloaded','Description'))
+print("%-30s %-15s %s" %('Image Name','Downloaded','Description'))
 for tool in dsToolDict:
     if tool['name'] not in excludedImages:
         if tool['name'] in downloadedDsTools:
-            toolLine = "%-30s %-10s %-15s %s" %(tool['name'],tool['star_count'],True,tool['description'])
+            toolLine = "%-30s %-15s %s" %(tool['name'],True,tool['description'])
         else:
-            toolLine = "%-30s %-10s %-15s %s" %(tool['name'],tool['star_count'],False,tool['description'])
+            toolLine = "%-30s %-15s %s" %(tool['name'],False,tool['description'])
         dsToolMenu.append(toolLine)
         print(toolLine)
+
 
 containers = client.containers.list(all=True)
 
@@ -309,9 +357,6 @@ def menu():
         print("   python -m pip install simple-term-menu")
         quit()
 
-    import os
-    from simple_term_menu import TerminalMenu    
-
     # os.system('clear')
     print("Make a selection:")
     optionsMenu = [
@@ -319,7 +364,9 @@ def menu():
         "Resume        Resume a stopped tool so that it is now running", 
         "Launch        Launch a running tool, opens with default browser",
         "Stop          Stop an actively running tool",
-        "Remove        Remove a tool that is not running"]
+        "Remove        Remove a tool that is not running",
+        "Exit          Exits this menu"
+    ]
     terminalMenu = TerminalMenu(optionsMenu)
     selectedMenuOption = terminalMenu.show()
     print('')
@@ -365,7 +412,7 @@ def menu():
                 dsToolsDetected()
             except:
                 pass
-            quit()
+            # quit()
 
 
         if re.compile("^Resume").match(optionsMenu[selectedMenuOption]):
@@ -401,6 +448,11 @@ def menu():
                 time.sleep(2)
             refreshTools()
 
+        elif re.compile("^Exit").match(optionsMenu[selectedMenuOption]):
+            quit()
+
+    # Reloads the memu
+    os.execv(sys.argv[0], sys.argv)
 
 dsTools.add_command(menu)
 #dsTools.add_command(images)
