@@ -139,24 +139,25 @@ def dsToolsDetected():
         showImage    = attrs['Config']['Image']
         showHostname = attrs['Config']['Hostname']
 
-        if re.compile("jlab-").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8888/tcp'][0]['HostPort']
-        if re.compile("r-studio").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8787/tcp'][0]['HostPort']      
-        if re.compile("r-shiny").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['3838/tcp'][0]['HostPort']      
-        if re.compile("dash").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8050/tcp'][0]['HostPort']      
-        if re.compile("nginx").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8080/tcp'][0]['HostPort']      
-        if re.compile("label-studio").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8080/tcp'][0]['HostPort']      
-        if re.compile("metabase").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['3000/tcp'][0]['HostPort']      
-        if re.compile("superset").search(attrs['Config']['Image']):
-            showUrl = attrs['HostConfig']['PortBindings']['8088/tcp'][0]['HostPort']
-            
-        message = "%-35s %-20s %-20s http://localhost:%s" %(showImage,showHostname,showStatus,showUrl)
+        portDict = {
+            "jlab":"8888/tcp",
+            "r-studio":"8787/tcp",
+            "r-shiny":"3838/tcp",
+            "dash":"8050/tcp",
+            "nginx":"8080/tcp",
+            "label-studio":"8080/tcp",
+            "metabase":"3000/tcp",            
+            "superset":"8088/tcp"
+        }
+
+        if containerStatus == True:
+            image_name = re.search(r'(?<=afcai2c/)\w*', attrs['Config']['Image']).group()
+            showUrl = attrs['HostConfig']['PortBindings'][portDict[image_name]][0]['HostPort']
+            message = "%-35s %-20s %-20s http://localhost:%s" %(showImage,showHostname,showStatus,showUrl)
+        elif  containerStatus == False:
+            showUrl = 'The image is not running'
+            message = "%-35s %-20s %-20s %s" %(showImage,showHostname,showStatus,showUrl)
+
         print(message)
         containersMenu.append(message)
 
