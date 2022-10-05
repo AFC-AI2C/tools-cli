@@ -14,7 +14,11 @@ port = None
 start = None
 stop = None
 
-client = docker.from_env()
+try:
+    client = docker.from_env()
+except:
+    print("[!] Docker is not running or is not installed!\n[!] Please ensure Docker is running or visit https://docs.docker.com/get-docker\n")
+    quit()
 
 
 # Generates a list of all dstools already on the system
@@ -268,14 +272,6 @@ defaultPort  = random.randrange(8000,9000)
 @click.version_option("0.1.0")
 def dsTools():
     """A Local Data Science Tool Manager"""
-    try:
-        client = docker.from_env()
-    except:
-        print("Docker is not isntalled! Visit https://docs.docker.com/get-docker/")
-        quit()
-
-
-
 
 @click.command()
 @click.option(
