@@ -2,7 +2,7 @@
 import docker, click, webbrowser, requests, json, time, re, os, sys, random
 from operator import itemgetter
 from pathlib import Path
-
+from simple_term_menu import TerminalMenu  
 
 os.system('clear')
 
@@ -183,6 +183,52 @@ dsToolsDetected()
 print('')
 
 
+def dsToolTerminalMenu():
+    # os.system('clear')
+    print("Make a selection:")
+    global optionsMenu
+    optionsMenu = [
+        "Start         Start a new data science tool - new container", 
+        "Resume        Resume a stopped tool so that it is now running", 
+        "Launch        Launch a running tool, opens with default browser",
+        "Stop          Stop an actively running tool",
+        "Remove        Remove a tool that is not running",
+        "Pull          Pull the latest version of a tool from Docker Hub",
+        "Exit          Exits this menu"
+    ]
+    terminalMenu = TerminalMenu(optionsMenu)
+    global selectedMenuOption
+    selectedMenuOption = terminalMenu.show()
+    
+
+def showTools():
+    os.system('clear')
+    print("\nData Science tools detected:")
+    print("%-35s %-20s %-20s %s" %('  Image','  ID','  Status','  Browser URL'))   
+    for con in containersMenu:
+        print(f"  {con}")
+
+def selectTools():
+    os.system('clear')
+    print("\nData Science tools detected:")
+    print("%-35s %-20s %-20s %s" %('  Image','  ID','  Status','  Browser URL'))
+    terminalContainerSelection = TerminalMenu(containersMenu)
+    selectedContainer = terminalContainerSelection.show()
+    
+    toolContainer = str(containersMenu[selectedContainer]).strip(' ')
+    containerID = re.split('\s+', toolContainer)[1]
+    containerUrl = re.split('\s+', toolContainer)[-1]
+    return containerID, containerUrl
+
+
+def refreshTools():
+    os.system('clear')
+    try:
+        dsToolsDetected()
+    except:
+        pass
+    # quit()
+
 
 def startDsTool(image,tag,port):
     # Volume paths between localhost and tools 
@@ -224,6 +270,9 @@ def startDsTool(image,tag,port):
     #     decode=True):
     #     print(json.dumps(line, indent=4)['status'])
 
+    command = "docker pull {0}:{1}".format(image,tag)
+    os.system(command)
+
     tool = client.containers.run(
         image  = imageName,
         ports  = {portContainer:port},
@@ -255,6 +304,11 @@ def startDsTool(image,tag,port):
     return(tool)
 
 
+def stopDsTool():
+    containerID = selectTools()[0]
+    containerSelected = client.containers.get(containerID)
+    containerSelected.stop()
+
 
 promptImage  = "Enter the desired data science tool to start a new container with"
 defaultImage = "afcai2c/jlab-eda"
@@ -271,10 +325,12 @@ promptPort   = "   JupyterLab      8888\
 \n   nginx (https)   8443"
 defaultPort  = random.randrange(8000,9000)
 
+
 @click.group()
 @click.version_option("0.1.0")
 def dsTools():
     """A Local Data Science Tool Manager"""
+
 
 @click.command()
 @click.option(
@@ -297,24 +353,26 @@ def dsTools():
     default = defaultPort,
     help    = "The tool will be accessible within the browser at http://localhost:[PORT]"
     )
-@click.argument("staaaart", type=click.STRING, autocompletion=start)
-
-
 def start(image,tag,port):
     startDsTool(image,tag,port)
 
 
-
 @click.command()
-def stop():
+@click.option(
+    '--id', 
+    prompt  = 'Enter the ID of a Running container/tool', 
+    default = lastRunningContainer,
+    help    = 'Make a selection - each tools has AI/ML packages installed specifically their respetive purposes.'
+    )
+def stop(id):
     if runningTools:
-        message = "Enter the container ID of the tool to stop: [{0}] ".format(lastRunningContainer)
-        containerID = str(input(message) or lastRunningContainer)
-        containerSelected = client.containers.get(containerID)
+        containerSelected = client.containers.get(id)
         containerSelected.stop()
-        quit()
     else:
-        print('No data science tools are running.')
+        print('[!] No data science tools are running')
+    dsToolsDetected()
+    showTools()
+    quit()
 
 
 @click.command()
@@ -324,7 +382,11 @@ def resume():
         containerID = str(input(message) or lastStoppedContainer)
         containerSelected = client.containers.get(containerID)
         containerSelected.start()
-        quit()
+    else:
+        print('[!] No data science tools are stopped')
+    dsToolsDetected()
+    showTools()
+    quit()
 
 
 @click.command()
@@ -348,27 +410,14 @@ def remove():
     quit()
 
 
+
+@click.command()
+def pull():
+    pass
+
 @click.command()
 def menu():
-    try:
-        from simple_term_menu import TerminalMenu    
-    except:
-        print("Need to install simple-term-menu:")
-        print("   python -m pip install simple-term-menu")
-        quit()
-
-    # os.system('clear')
-    print("Make a selection:")
-    optionsMenu = [
-        "Start         Start a new data science tool - new container", 
-        "Resume        Resume a stopped tool so that it is now running", 
-        "Launch        Launch a running tool, opens with default browser",
-        "Stop          Stop an actively running tool",
-        "Remove        Remove a tool that is not running",
-        "Exit          Exits this menu"
-    ]
-    terminalMenu = TerminalMenu(optionsMenu)
-    selectedMenuOption = terminalMenu.show()
+    dsToolTerminalMenu()
     print('')
     print(f"You have selected:\n   {optionsMenu[selectedMenuOption]}!")
     print('')
@@ -394,37 +443,18 @@ def menu():
 
         startDsTool(menuStartImage,menuStartTag,menuStartPort)
     else:        
-        def showTools():
-            os.system('clear')
-            print("\nData Science tools detected:")
-            print("%-35s %-20s %-20s %s" %('  Image','  ID','  Status','  Browser URL'))
-            terminalContainerSelection = TerminalMenu(containersMenu)
-            selectedContainer = terminalContainerSelection.show()
-            
-            toolContainer = str(containersMenu[selectedContainer]).strip(' ')
-            containerID = re.split('\s+', toolContainer)[1]
-            containerUrl = re.split('\s+', toolContainer)[-1]
-            return containerID, containerUrl
-
-        def refreshTools():
-            os.system('clear')
-            try:
-                dsToolsDetected()
-            except:
-                pass
-            # quit()
-
-
         if re.compile("^Resume").match(optionsMenu[selectedMenuOption]):
             print("Enter the container ID of the tool to resume: ")
-            containerID = showTools()[0]
+            containerID = selectTools()[0]
             containerSelected = client.containers.get(containerID)
             containerSelected.start()
+            # print(containerID)
+            # print(containerSelected)
             refreshTools()
             
         elif re.compile("^Launch").match(optionsMenu[selectedMenuOption]):
             print("Enter the container ID of the tool to launch: ")
-            containerUrl = showTools()[1]
+            containerUrl = selectTools()[1]
             print("Lauching the tool in the default browser: {0}".format(containerUrl))
             webbrowser.open(containerUrl)
             time.sleep(2)
@@ -432,14 +462,12 @@ def menu():
 
         elif re.compile("^Stop").match(optionsMenu[selectedMenuOption]):
             print("Enter the container ID of the tool to stop: ")
-            containerID = showTools()[0]
-            containerSelected = client.containers.get(containerID)
-            containerSelected.stop()
+            stopDsTool()
             refreshTools()
 
         elif re.compile("^Remove").match(optionsMenu[selectedMenuOption]):
             print()
-            containerID = showTools()[0]
+            containerID = selectTools()[0]
             containerSelected = client.containers.get(containerID)
             try:
                 containerSelected.remove()
@@ -447,6 +475,17 @@ def menu():
                 print("\n[!] Stop the container before attempting removal.\n")
                 time.sleep(2)
             refreshTools()
+
+        elif re.compile("^Pull").match(optionsMenu[selectedMenuOption]):
+            print()
+            ### Image Selection ###
+            terminalToolSelection = TerminalMenu(dsToolMenu)
+            selectedTool = terminalToolSelection.show()
+            menuStartImage = str(dsToolMenu[selectedTool]).split(' ')[0]
+            
+            # pull the image
+            command = "docker pull {0}:{1}".format(menuStartImage,defaultTag)
+            os.system(command)
 
         elif re.compile("^Exit").match(optionsMenu[selectedMenuOption]):
             quit()
