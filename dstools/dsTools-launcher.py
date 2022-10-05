@@ -239,8 +239,8 @@ def startDsTool(image,tag,port):
             },
         working_dir = '/home'
         )
+
     launchUrl = "{0}:{1}".format(localhost,port)
-    webbrowser.open(launchUrl)
     message = "\
 \n[!] {0} will be hosted at: {1}\
 \n\n[!] The following paths have been mounted within the tool:".format(image,launchUrl)
@@ -248,6 +248,9 @@ def startDsTool(image,tag,port):
     print("    %-20s %-10s" %('localhost',"tool (" + image + ")"))
     print("    %-20s %-10s" %(localhostHome,"/home/localhost"))
     print("    %-20s %-10s" %("/tmp","/tmp/localhost"))
+
+    time.sleep(3)
+    webbrowser.open(launchUrl)
 
     return(tool)
 
