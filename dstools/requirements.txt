@@ -2,3 +2,4 @@ docker
 click
 requests
 pathlib
+simple_term_menu
