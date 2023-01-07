@@ -302,17 +302,28 @@ def startDsTool(image,tag,port):
     #         },
     #     working_dir = '/home'
     # )
-    command = "docker run -d -v /home/localhost/tmp:/home/localhost/dsTools -p {0}:{1} {2}:{3}".format(port,portContainer,image,tag)
+
+    command = "docker run -d -v /tmp:/root/tmp -v /tmp:/home/localhost/tmp -v /tmp:/home/default/localhost/tmp -v /tmp:/home/jovyan/localhost/tmp -v /tmp:/home/shiny/localhost/tmp -v {0}:/root/localhost -v {0}:/home/localhost -v {0}:/home/default/localhost -v {0}:/home/jovyan/localhost -v {0}:/home/shiny/localhost -p {1}:{2} {3}:{4}".format(pwd,port,portContainer,image,tag)
     os.system(command)
 
     launchUrl = "{0}:{1}".format(localhost,port)
     message = "\
 \n[!] {0} will be hosted at: {1}\
-\n\n[!] The following paths have been mounted within the tool:".format(image,launchUrl)
+\n\n[!] The following paths have been mounted to for ease of file access between the tools:".format(image,launchUrl)
     print(message)
     print("    %-20s %-10s" %('localhost',"tool (" + image + ")"))
-    print("    %-20s %-10s" %(localhostHome,"/home/localhost"))
-    print("    %-20s %-10s" %("/tmp","/tmp/localhost"))
+    print("    %-20s %-10s" %(pwd,"/root/localhost"))
+    print("    %-20s %-10s" %(pwd,"/home/python"))
+    print("    %-20s %-10s" %(pwd,"/home/localhost"))
+    print("    %-20s %-10s" %(pwd,"/home/default/localhost"))
+    print("    %-20s %-10s" %(pwd,"/home/jovyan/localhost"))
+    print("    %-20s %-10s" %(pwd,"/home/shiny/localhost"))
+    print("    %-20s %-10s" %("/tmp","/root/localhost/tmp"))
+    print("    %-20s %-10s" %("/tmp","/home/python/tmp"))
+    print("    %-20s %-10s" %("/tmp","/home/localhost/tmp"))
+    print("    %-20s %-10s" %("/tmp","/home/default/localhost/tmp"))
+    print("    %-20s %-10s" %("/tmp","/home/jovyan/localhost/tmp"))
+    print("    %-20s %-10s" %("/tmp","/home/shiny/localhost/tmp"))
 
     seconds = 5
     while seconds > 0:
@@ -330,6 +341,7 @@ def startDsTool(image,tag,port):
 def stopDsTool():
     containerID = selectTools()[0]
     containerSelected = client.containers.get(containerID)
+    print("Please be patient...")
     containerSelected.stop()
 
 
