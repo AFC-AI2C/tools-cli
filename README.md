@@ -4,12 +4,15 @@ BLUF: A simple cli utility to launch data science tools locally.
 This python script allows you to pull, launch, and manage various AI/ML tools with currated packages installed sepcific to the intended application's use case.
 
 ### How to install required python libraries
+----------
 pip install -r ./requirements.txt
 
 ### How to run the script
+----------
 ./launch-dsTools.py menu
 
 ### General Guide
+----------
 The menu option will provided you a listing of the avialable data science tools for use, a status if they hav been downloaded, and a brief description. Below the images will be a listing of any detected dsTool images running or stopped.
 ![Alt text](https://github.com/AFC-AI2C/tools-cli/blob/main/images/screenshot01.jpg)
 
