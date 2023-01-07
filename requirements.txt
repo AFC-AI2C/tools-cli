@@ -1,5 +1,2 @@
-click
-six
-pyfiglet
-termcolor
 docker
+simple_term_menu
