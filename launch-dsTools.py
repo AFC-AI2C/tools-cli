@@ -167,13 +167,9 @@ def dsToolsDetected():
 
         try:
             if containerStatus == True:
-                # print('####################',showImage)
-                # print('####################',showHostname)
-                # print('####################',showStatus)
-                # imageName = re.search(r'(?<=afcai2c/)\w*', attrs['Config']['Image']).group()
                 imageName = re.search(r'(?<=afcai2c/).+', showImage).group()
                 imageName = str(imageName).split(':')[0]
-                # print('####################',imageName)
+
                 showUrl = attrs['HostConfig']['PortBindings'][portDict[imageName]][0]['HostPort']
 
                 message = "%-35s %-20s %-20s http://localhost:%s" %(showImage,showHostname,showStatus,showUrl)
