@@ -249,8 +249,8 @@ def refreshTools():
 
 def startDsTool(image,tag,port):
     # Volume paths between localhost and tools 
-    localhostHome = Path.home()
-    dsToolsVolume = "{0}/dsTools".format(localhostHome)
+    pwd = os.getcwd()
+    dsToolsVolume = "{0}/dsTools-share".format(pwd)
     command = "mkdir -p {0}".format(dsToolsVolume)
     os.system(command)
     command = "chmod 777 {0}".format(dsToolsVolume)
