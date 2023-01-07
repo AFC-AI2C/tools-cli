@@ -280,15 +280,6 @@ def startDsTool(image,tag,port):
         print("Error... Unable to find the image's default port")
 
     imageName = "{0}:{1}".format(image,tag)
-
-    # client = docker.APIClient(base_url='unix://var/run/docker.sock')
-    # for line in client.pull(
-    #     repository = 'afcai2c/jlab-eda',
-    #     tag = tag,
-    #     stream=True,
-    #     decode=True):
-    #     print(json.dumps(line, indent=4)['status'])
-
     command = "docker pull {0}:{1}".format(image,tag)
     try:
         os.system(command)
