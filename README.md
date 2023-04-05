@@ -1,6 +1,7 @@
 # tools-cli
 BLUF: A simple cli utility to launch data science tools locally.
 
+This is designed to be ran from an Linux host or within Windows Subsystem for Linux (WSL).
 This python script allows you to pull, launch, and manage various AI/ML tools with currated packages installed sepcific to the intended application's use case.
 
 ----------
@@ -8,6 +9,9 @@ This python script allows you to pull, launch, and manage various AI/ML tools wi
 ## How to install required python libraries
 pip install -r ./requirements.txt
 
+## How to have the UI automatically launch with default browser
+sudo apt install xdg-utils -y
+ 
 ----------
 
 ## How to run the script
