@@ -6,10 +6,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Click',
+        'docker',
+        'click',
+        'requests',
+        'simple-term-menu',
     ],
     entry_points='''
         [console_scripts]
-        dstools=dstools.main:main
+        dstools=dstools:main
     ''',
 )
+

@@ -4,6 +4,16 @@ from operator import itemgetter
 from pathlib import Path
 from simple_term_menu import TerminalMenu  
 
+#first need to check if we have docker installed and running
+try:
+    client = docker.from_env()
+except:
+    print("[!] Docker is not running or is not installed!\n[!] Please ensure Docker is running or visit https://docs.docker.com/get-docker\n")
+    quit()
+
+
+################## clean up and create some data objects for lists #########################
+
 os.system('clear')
 
 # Placeholders
@@ -13,13 +23,6 @@ tag = None
 port = None
 start = None
 stop = None
-
-try:
-    client = docker.from_env()
-except:
-    print("[!] Docker is not running or is not installed!\n[!] Please ensure Docker is running or visit https://docs.docker.com/get-docker\n")
-    quit()
-
 
 # Generates a list of all dstools already on the system
 imagesLocal = client.images.list()
@@ -199,6 +202,10 @@ dsToolsDetected()
 
 print('')
 
+################## this ends the tool search and inital data setup #########################
+
+
+################## this section is a set of helper functions ###############################
 
 def dsToolTerminalMenu():
     # # os.system('clear')
@@ -344,7 +351,6 @@ def stopDsTool():
     print("Please be patient...")
     containerSelected.stop()
 
-
 promptImage  = "Enter the desired data science tool to start a new container with"
 defaultImage = "afcai2c/jlab-eda"
 promptTag    = "\nRun the latest build or specify the tag."
@@ -361,94 +367,11 @@ promptPort   = "   JupyterLab      8888\
 defaultPort  = random.randrange(8000,9000)
 # \n   SuperSet        8088\
 
+######################### this section is the actual cli commands #####################
 
 @click.group()
-@click.version_option("0.1.0")
-def dsTools():
-    """A Local Data Science Tool Manager"""
-
-
-@click.command()
-@click.option(
-    '--image', 
-    prompt  = promptImage, 
-    default = defaultImage,
-    help    = 'Make a selection - each tools has AI/ML packages installed specifically their respetive purposes.'
-    )
-@click.option(
-    '--tag',
-    prompt  = promptTag,
-    default = defaultTag,
-    help    = 'The latest tag is normally your best option.'
-    )
-@click.option(
-    '--port',
-    prompt  = "\nList of the default tool ports: \
-\n{0} \
-\nEnter a port number to bind the tool too or accept random value:".format(promptPort),
-    default = defaultPort,
-    help    = "The tool will be accessible within the browser at http://localhost:[PORT]"
-    )
-def start(image,tag,port):
-    startDsTool(image,tag,port)
-
-
-@click.command()
-@click.option(
-    '--id', 
-    prompt  = 'Enter the ID of a Running container/tool', 
-    default = lastRunningContainer,
-    help    = 'Make a selection - each tools has AI/ML packages installed specifically their respetive purposes.'
-    )
-def stop(id):
-    if runningTools:
-        containerSelected = client.containers.get(id)
-        containerSelected.stop()
-    else:
-        print('[!] No data science tools are running')
-    dsToolsDetected()
-    showTools()
-    quit()
-
-
-@click.command()
-def resume():
-    if stoppedTools:
-        message = "[!] Enter the container ID of the tool to resume [{0}]: ".format(lastStoppedContainer)
-        containerID = str(input(message) or lastStoppedContainer)
-        containerSelected = client.containers.get(containerID)
-        containerSelected.start()
-    else:
-        print('[!] No data science tools are stopped')
-    dsToolsDetected()
-    showTools()
-    quit()
-
-
-@click.command()
-def remove():
-    if lastStoppedContainer :
-        message = "[!] Enter the container ID of the tool to remove [{0}]: ".format(lastStoppedContainer)
-        containerID = str(input(message) or lastStoppedContainer)
-        containerSelected = client.containers.get(containerID)
-        containerSelected.remove()
-    else:
-        message = "[!] Enter the container ID of the tool to remove [{0}]: ".format(lastRunningContainer)
-        containerID = str(input(message) or lastStoppedContainer)
-        if runningTools == True:
-            print("\n[!] Be sure to stop the running containers first!")
-        #     message = "\n[!] Are you sure you want to remove the running container {0}? [False]: ".format(lastRunningContainer)
-        #     verifyRemoval = str(input(message))
-        #     if message == True:
-        #         containerID = str(input(message) or lastStoppedContainer)
-        #         containerSelected = client.containers.get(containerID)
-        #         containerSelected.remove(force=True)
-    quit()
-
-
-
-@click.command()
-def pull():
+def main():
+    """Simple CLI tool using click"""
     pass
 
 @click.command()
@@ -536,20 +459,86 @@ def menu():
     # Reloads the memu
     os.execv(sys.argv[0], sys.argv)
 
-dsTools.add_command(menu)
-#dsTools.add_command(images)
-#dsTools.add_command(tools)
-dsTools.add_command(start)
-dsTools.add_command(resume)
-dsTools.add_command(stop)
-dsTools.add_command(remove)
+@click.command()
+@click.option(
+    '--image', 
+    prompt  = promptImage, 
+    default = defaultImage,
+    help    = 'Make a selection - each tools has AI/ML packages installed specifically their respetive purposes.'
+    )
+@click.option(
+    '--tag',
+    prompt  = promptTag,
+    default = defaultTag,
+    help    = 'The latest tag is normally your best option.'
+    )
+@click.option(
+    '--port',
+    prompt  = "\nList of the default tool ports: \
+\n{0} \
+\nEnter a port number to bind the tool too or accept random value:".format(promptPort),
+    default = defaultPort,
+    help    = "The tool will be accessible within the browser at http://localhost:[PORT]"
+    )
+def start(image,tag,port):
+    startDsTool(image,tag,port)
 
+@click.command()
+@click.option(
+    '--id', 
+    prompt  = 'Enter the ID of a Running container/tool', 
+    default = lastRunningContainer,
+    help    = 'Make a selection - each tools has AI/ML packages installed specifically their respetive purposes.'
+    )
+def stop(id):
+    if runningTools:
+        containerSelected = client.containers.get(id)
+        containerSelected.stop()
+    else:
+        print('[!] No data science tools are running')
+    dsToolsDetected()
+    showTools()
+    quit()
+
+
+@click.command()
+def resume():
+    if stoppedTools:
+        message = "[!] Enter the container ID of the tool to resume [{0}]: ".format(lastStoppedContainer)
+        containerID = str(input(message) or lastStoppedContainer)
+        containerSelected = client.containers.get(containerID)
+        containerSelected.start()
+    else:
+        print('[!] No data science tools are stopped')
+    dsToolsDetected()
+    showTools()
+    quit()
+
+@click.command()
+def remove():
+    if lastStoppedContainer :
+        message = "[!] Enter the container ID of the tool to remove [{0}]: ".format(lastStoppedContainer)
+        containerID = str(input(message) or lastStoppedContainer)
+        containerSelected = client.containers.get(containerID)
+        containerSelected.remove()
+    else:
+        message = "[!] Enter the container ID of the tool to remove [{0}]: ".format(lastRunningContainer)
+        containerID = str(input(message) or lastStoppedContainer)
+        if runningTools == True:
+            print("\n[!] Be sure to stop the running containers first!")
+        #     message = "\n[!] Are you sure you want to remove the running container {0}? [False]: ".format(lastRunningContainer)
+        #     verifyRemoval = str(input(message))
+        #     if message == True:
+        #         containerID = str(input(message) or lastStoppedContainer)
+        #         containerSelected = client.containers.get(containerID)
+        #         containerSelected.remove(force=True)
+    quit()
+
+main.add_command(menu)
+main.add_command(start)
+main.add_command(resume)
+main.add_command(stop)
+main.add_command(remove)
 
 if __name__ == '__main__':
-    dsTools()
-
-
-
-
-
-
+    main()
