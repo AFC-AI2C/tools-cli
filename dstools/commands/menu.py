@@ -80,5 +80,5 @@ def menu():
         elif re.compile("^Exit").match(optionsMenu[selectedMenuOption]):
             quit()
 
-    # Reloads the memu
+    # Reloads the memu again
     os.execv(sys.argv[0], sys.argv)
